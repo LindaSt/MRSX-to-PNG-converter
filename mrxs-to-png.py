@@ -42,13 +42,12 @@ def extract_crop(mrxs_file, level, coord=None):
         width = coord[2][0] - coord[0][0]
         height = coord[2][1] - coord[0][1]
         size = (int(width), int(height))
+        # make sure the dimension we want to crop are within the image dimensions
+        assert coord[3][0] <= dims[0] and coord[3][1] <= dims[1]
     else:
         # if no coordinates are specified, the whole image is exported
         top_left_coord = [0, 0]
-        size = dims[id_level]
-
-    # make sure the dimension we want to crop are within the image dimensions
-    assert coord[3][0] <= dims[0] and coord[3][1] <= dims[1]
+        size = dims
 
     # extract the region of interest
     img = mrxs_file.read_region(top_left_coord, id_level, size)
@@ -75,7 +74,7 @@ def get_files_to_process(mrxs_files, coord_files):
     return [(fn, mf, cf) for fn, mf, cf in zip(file_names, mrxs_files, coord_files_checked)]
 
 
-def main(file_path, output_path, coord_path=None, coord_annotation_tag='hotspot', level=0):
+def main(file_path, output_path, coord_path='', coord_annotation_tag='hotspot', level=0, overwrite=False):
     """
     This function converts (patches of) an mrxs file to a png format.
 
@@ -91,6 +90,7 @@ def main(file_path, output_path, coord_path=None, coord_annotation_tag='hotspot'
         Name of the annotation group in the xml file (default is 'hotspot').
     :param level: int (optional)
         Level of the mrxs file that should be used for the conversion (default is 0).
+    :param overwrite: overides exisiting extracted patches (default is False)
 
     """
     # create the output folder, if it does not exist
@@ -120,17 +120,26 @@ def main(file_path, output_path, coord_path=None, coord_annotation_tag='hotspot'
                 # save the image
                 file_name_appendix = f'{i}' if len(coords) > 1 else ''
                 Image.fromarray(png[:, :, :3]).save(os.path.join(output_path, f'{file_name}-{file_name_appendix}.png'))
+
     elif os.path.isfile(file_path) or os.path.isdir(file_path):
         # if no coordinates are specified, the full image is extracted
         print('No coordinates xml file specified, extracting full image(s).')
         mrxs_files = glob.glob(os.path.join(file_path, '*.mrxs')) if os.path.isdir(file_path) else [file_path]
         # process the files
-        for mrxs_file in mrxs_files:
+        for mrxs_path in mrxs_files:
+            mrxs_file = open_slide(mrxs_path)
             # extract the patch
             png = extract_crop(mrxs_file, level)
             # save the image
-            file_name = os.path.splitext(os.path.basename(mrxs_file))[0]
-            Image.fromarray(png[:, :, :3]).save(os.path.join(output_path, f'{file_name}.png'))
+            file_name = os.path.splitext(os.path.basename(mrxs_path))[0]
+            output_file_name = os.path.join(output_path, f'{file_name}.png')
+            if overwrite:
+                Image.fromarray(png[:, :, :3]).save(output_file_name)
+            else:
+                if os.path.isfile(output_file_name):
+                    print(f'File {output_file_name} already exists. Output saving is skipped. To overwrite add --')
+                else:
+                    Image.fromarray(png[:, :, :3]).save(os.path.join(output_path, f'{file_name}.png'))
 
     else:
         # Something went wrong
