@@ -61,20 +61,24 @@ def extract_crop(mrxs_file, level, coord=None):
 def get_files_to_process(mrxs_files, coord_files):
     # create a list of the paired mrxs and coordinate files
     # only take files that have a corresponding coordinates file
-    file_names = [os.path.splitext(os.path.basename(mrxs_path))[0] for mrxs_path in mrxs_files]
-    coord_files_checked = []
-    for filename in file_names:
-        checked = ''
+    files_to_process = []
+    for mrxs_path in mrxs_files:
+        filename = os.path.splitext(os.path.basename(mrxs_path))[0]
+        checked = []
         for coord_file in coord_files:
             if filename in coord_file:
-                checked = coord_file
-        if len(checked) == 0:
-            print(f'File {filename}.mrxs does not have a corresponding xml file. File will be skipped.')
+                checked.append(coord_file)
+        if len(checked) != 1:
+            print(f'File {filename}.mrxs does not have a / too many corresponding xml file/s. File will be skipped.')
+        else:
+            files_to_process.append((filename, mrxs_path, checked.pop()))
 
-    return [(fn, mf, cf) for fn, mf, cf in zip(file_names, mrxs_files, coord_files_checked)]
+    return files_to_process
+    # return [(fn, mf, cf) for fn, mf, cf in zip(file_names, mrxs_files, coord_files_checked)]
 
 
-def main(file_path, output_path, coord_path='', coord_annotation_tag='hotspot', level=0, overwrite=False):
+def main(file_path, output_path,
+         coord_path: str = '', staining: str = '', coord_annotation_tag: str = 'hotspot', level: int = 0, overwrite: bool = False):
     """
     This function converts (patches of) an mrxs file to a png format.
 
@@ -86,6 +90,7 @@ def main(file_path, output_path, coord_path='', coord_annotation_tag='hotspot', 
     :param coord_path: string (optional)
         Path to the coordinate xml files (created with ASAP) single file or folder of files
         If not provided, the full image is converted into a png.
+    :param staining: Staining identifier, that would be specified right before .mrxs (e.g. CD8) (optional)
     :param coord_annotation_tag: string (optional)
         Name of the annotation group in the xml file (default is 'hotspot').
     :param level: int (optional)
@@ -101,8 +106,8 @@ def main(file_path, output_path, coord_path='', coord_annotation_tag='hotspot', 
     if (os.path.isdir(file_path) and os.path.isdir(coord_path)) or (os.path.isfile(file_path) and os.path.isfile(coord_path)):
         # get the files to be processed (depending on whether it's a folder or just a file
         if os.path.isdir(file_path) and os.path.isdir(coord_path):
-            mrxs_files = glob.glob(os.path.join(file_path, '*.mrxs'))
-            coord_files = glob.glob(os.path.join(coord_path, '*.xml'))
+            mrxs_files = glob.glob(os.path.join(file_path, f'*{staining}.mrxs'))
+            coord_files = glob.glob(os.path.join(coord_path, f'*{staining}.xml'))
             files_to_process = get_files_to_process(mrxs_files, coord_files)
         elif os.path.isfile(file_path) and os.path.isfile(coord_path):
             mrxs_files = [file_path]
@@ -118,13 +123,21 @@ def main(file_path, output_path, coord_path='', coord_annotation_tag='hotspot', 
                 # extract the patch
                 png = extract_crop(mrxs_file, level, coord)
                 # save the image
-                file_name_appendix = f'{i}' if len(coords) > 1 else ''
-                Image.fromarray(png[:, :, :3]).save(os.path.join(output_path, f'{file_name}-{file_name_appendix}.png'))
+                file_name = os.path.splitext(os.path.basename(mrxs_path))[0]
+                output_file_name = os.path.join(output_path, f'{file_name}.png')
+                if overwrite:
+                    Image.fromarray(png[:, :, :3]).save(output_file_name)
+                else:
+                    if os.path.isfile(output_file_name):
+                        print(f'File {output_file_name} already exists. Output saving is skipped. To overwrite add --overwrite')
+                    else:
+                        Image.fromarray(png[:, :, :3]).save(os.path.join(output_path, f'{file_name}.png'))
 
+    # if no coordinates are specified, the full image is extracted
     elif os.path.isfile(file_path) or os.path.isdir(file_path):
-        # if no coordinates are specified, the full image is extracted
         print('No coordinates xml file specified, extracting full image(s).')
         mrxs_files = glob.glob(os.path.join(file_path, '*.mrxs')) if os.path.isdir(file_path) else [file_path]
+
         # process the files
         for mrxs_path in mrxs_files:
             mrxs_file = open_slide(mrxs_path)
@@ -133,7 +146,7 @@ def main(file_path, output_path, coord_path='', coord_annotation_tag='hotspot', 
             # save the image
             file_name = os.path.splitext(os.path.basename(mrxs_path))[0]
             output_file_name = os.path.join(output_path, f'{file_name}.png')
-            if overwrite:
+            if overwrite: # TODO: refactor this to skip whole processing and make code cleaner for full extraction (unify)
                 Image.fromarray(png[:, :, :3]).save(output_file_name)
             else:
                 if os.path.isfile(output_file_name):

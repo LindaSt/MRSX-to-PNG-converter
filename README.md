@@ -2,7 +2,7 @@
 This command line tool lets you convert (patches of) mrxs files to png files.
 
 It takes the following command line arguments:
-- `file_path`: Path to the mrxs single file or folder of files.
+- `file-path`: Path to the mrxs single file or folder of files.
 - `output-path`: Path to the output folder. The output format is the same name as the mrxs file,
     with an appendix if multiple patches are extracted.
 - `coord-path`: Path to the coordinate xml files (created with ASAP) single file or folder of files
