@@ -9,7 +9,7 @@ from PIL import Image
 
 class PngExtractor:
 
-    def __init__(self, file_path, output_path, coord_path: str = None, staining: str = '',
+    def __init__(self, file_path: str, output_path: str, coord_path: str = None, staining: str = '',
                  coord_annotation_tag: str = 'hotspot', level: int = 0, overwrite: bool = False):
         """
         This Object extracts (patches of) an mrxs file to a png format.
