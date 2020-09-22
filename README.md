@@ -10,6 +10,6 @@ It takes the following command line arguments:
 - `coord-annotation-tag`: Name of the annotation group in the xml file (default is 'hotspot').
 - `level`: Level of the mrxs file that should be used for the conversion (default is 0).
 - `override`: Default is False. If set to True, overrides patches with the same file name in the output folder.
-        
+    
 You can set up the conda environment by running `conda env create -f environment.yml` in this directory.
 The tool the [OpenSlide](https://openslide.org/) Python API to handle the mrxs files.
