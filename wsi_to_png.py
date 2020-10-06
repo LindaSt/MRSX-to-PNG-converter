@@ -93,16 +93,14 @@ class PngExtractor:
             print('mrxs paths are invalid.')
 
     def extract_crop(self, wsi_img, coord=None):
-        # coordinates have to be in format [[tl], [tr], [br], [bl]]
+        # coordinates have to be in format [tl, tr, br, bl] ((0,0) is top-left)
         # crop the region of interest from the mrxs file on the specified level
         # get the level and the dimensions
         id_level = np.argmax(np.array(wsi_img.level_downsamples) == self.level)
         dims = wsi_img.level_dimensions[id_level]
 
         if coord:
-            # TODO: Fix / Check that top left is actually top left! (are extracted hotspots correct? should not, as the
-            #  top left was wrong so far for ASAP) -> true order is [bl, br, tr, tl]
-            top_left_coord = [int(i) for i in coord[-1]]
+            top_left_coord = [int(i) for i in coord[0]]
             width = coord[2][0] - coord[0][0]
             height = coord[2][1] - coord[0][1]
             size = (int(width), int(height))
