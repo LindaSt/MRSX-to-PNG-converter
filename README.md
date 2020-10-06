@@ -39,16 +39,19 @@ the radius in a csv file.
 - `file-path`: Path to the mrxs file.
 - `output-path`: Path to the output folder. The output format is the same name as the mrxs file,
     with an appendix if multiple patches are extracted.
-- `coord-path`: Path to the csv file. Expects this set of headers: "Centroid X (pixels)",
+- `coord_csv-path`: Path to the csv file. Expects this set of headers: "Centroid X (pixels)",
     "Centroid Y (pixels)", "Radius (pixels)" (in pixel values)
 - `level`: Level of the mrxs file that should be used for the conversion (default is 0). Needs to match the level of the
        pixel coordinates.
 - `staining`: Staining identifier, that would be specified right before .mrxs (e.g. CD8) (optional, default is '')
 - `override`: Default is False. If set to True, overrides patches with the same file name in the output folder.
+- `adjust_coord`: Default is True. Adjusts coordinates extracted with QuPath for the missing white border in MRXS files. 
+        (Not necessary for ASAP extracted coordinates, or other file types).
+
 
 Run as `python tma_to_png.py [command line arguments]`.
 
 
 # Installation    
 You can set up the conda environment by running `conda env create -f environment.yml` in this directory.
-The tool the [OpenSlide](https://openslide.org/) Python API is used to to handle the mrxs files.
+The tool the [OpenSlide](https://openslide.org/) Python API is used to to handle the whole slide image files.
