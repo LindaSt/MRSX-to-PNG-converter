@@ -1,11 +1,16 @@
 import os
 import numpy as np
 import glob
-from openslide import open_slide
 import fire
-import xml.etree.ElementTree as ET
 from PIL import Image
+import platform
 
+# fix for windows
+if platform.system() == 'Windows':
+    print('INFO: Path to openslide ddl is manually added to the path.')
+    openslide_path = r'C:\Users\ls19k424\Documents\openslide-win64-20171122\bin'
+    os.environ['PATH'] = openslide_path + ";" + os.environ['PATH']
+import openslide
 
 class PngExtractor:
     """
@@ -48,7 +53,8 @@ class PngExtractor:
         if os.path.isfile(self.file_path):
             files = [self.file_path]
         else:
-            files = glob.glob(os.path.join(self.file_path, f'*{self.staining}.mrxs')).extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
+            files = glob.glob(os.path.join(self.file_path, f'*{self.staining}.mrxs'))
+            files.extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
         return files
 
     @property
@@ -81,7 +87,7 @@ class PngExtractor:
         # process the full image
         if os.path.isfile(self.file_path) or os.path.isdir(self.file_path):
             for output_file_path, wsi_path in self.files_to_process:
-                wsi_img = open_slide(wsi_path)
+                wsi_img = openslide.open_slide(wsi_path)
                 # extract the patch
                 png = self.extract_crop(wsi_img)
                 # save the image

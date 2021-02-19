@@ -1,11 +1,18 @@
 import os
-import numpy as np
 import pandas as pd
 import glob
-from openslide import open_slide
 import fire
 import xml.etree.ElementTree as ET
 from PIL import Image
+
+import platform
+
+# fix for windows
+if platform.system() == 'Windows':
+    print('INFO: Path to openslide ddl is manually added to the path.')
+    openslide_path = r'C:\Users\ls19k424\Documents\openslide-win64-20171122\bin'
+    os.environ['PATH'] = openslide_path + ";" + os.environ['PATH']
+import openslide
 
 from wsi_to_png import PngExtractor
 
@@ -131,7 +138,7 @@ class AsapPngExtractor(PngExtractor):
                 os.path.isfile(self.file_path) and os.path.isfile(self.coord_path))):
 
             for output_file_path, mrxs_path, coord_path in self.files_to_process:
-                wsi_img = open_slide(mrxs_path)
+                wsi_img = openslide.open_slide(mrxs_path)
                 coords = self.parse_xml(coord_path)
                 # iterate over the patch-coordinates(s)
                 for i, coord in enumerate(coords):
