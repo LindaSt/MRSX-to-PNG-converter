@@ -1,10 +1,17 @@
 import os
 import numpy as np
 import glob
-import openslide
 import fire
 import pandas as pd
 from PIL import Image
+import platform
+
+# fix for windows
+if platform.system() == 'Windows':
+    print('INFO: Path to openslide ddl is manually added to the path.')
+    openslide_path = r'C:\Users\ls19k424\Documents\openslide-win64-20171122\bin'
+    os.environ['PATH'] = openslide_path + ";" + os.environ['PATH']
+import openslide
 
 from wsi_to_png import PngExtractor
 
@@ -65,7 +72,7 @@ class TMAPngExtractor(PngExtractor):
         w, h = wsi.properties[openslide.PROPERTY_NAME_BOUNDS_WIDTH], wsi.properties[
             openslide.PROPERTY_NAME_BOUNDS_HEIGHT]
         wh = (int(int(w) / 2 ** self.level), int(int(h) / 2 ** self.level))
-        return wsi.read_region(dim, self.level, wh)
+        return wsi.read_region(location=dim, level=self.level, size=wh)
 
     # overwrite
     def process_files(self):

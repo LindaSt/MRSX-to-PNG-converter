@@ -1,10 +1,16 @@
 import os
 import numpy as np
 import glob
-from openslide import open_slide
 import fire
-import xml.etree.ElementTree as ET
 from PIL import Image
+import platform
+
+# fix for windows
+if platform.system() == 'Windows':
+    print('INFO: Path to openslide ddl is manually added to the path.')
+    openslide_path = r'C:\Users\ls19k424\Documents\openslide-win64-20171122\bin'
+    os.environ['PATH'] = openslide_path + ";" + os.environ['PATH']
+import openslide
 
 
 class PngExtractor:
@@ -48,7 +54,8 @@ class PngExtractor:
         if os.path.isfile(self.file_path):
             files = [self.file_path]
         else:
-            files = glob.glob(os.path.join(self.file_path, f'*{self.staining}.mrxs')).extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
+            files = glob.glob(os.path.join(self.file_path, f'*{self.staining}.mrxs'))
+            files.extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
         return files
 
     @property
@@ -82,7 +89,7 @@ class PngExtractor:
         if os.path.isfile(self.file_path) or os.path.isdir(self.file_path):
             for output_file_path, wsi_path in self.files_to_process:
                 assert os.path.isfile(wsi_path)
-                wsi_img = open_slide(wsi_path)
+                wsi_img = openslide.open_slide(wsi_path)
                 # extract the patch
                 png = self.extract_crop(wsi_img)
                 # save the image
@@ -97,7 +104,8 @@ class PngExtractor:
         # coordinates have to be in format [tl, tr, br, bl] ((0,0) is top-left)
         # crop the region of interest from the mrxs file on the specified level
         # get the level and the dimensions
-        id_level = np.argmax(np.array(wsi_img.level_downsamples) == self.level)
+        # id_level = np.argmax(np.array(wsi_img.level_downsamples) == self.level)
+        id_level = self.level
         dims = wsi_img.level_dimensions[id_level]
 
         if coord:
@@ -113,7 +121,7 @@ class PngExtractor:
             size = dims
 
         # extract the region of interest
-        img = wsi_img.read_region(top_left_coord, id_level, size)
+        img = wsi_img.read_region(location=top_left_coord, level=id_level, size=size)
 
         # Convert to img
         img = np.array(img)
