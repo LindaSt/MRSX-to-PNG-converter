@@ -131,6 +131,7 @@ class AsapPngExtractor(PngExtractor):
                 os.path.isfile(self.file_path) and os.path.isfile(self.coord_path))):
 
             for output_file_path, mrxs_path, coord_path in self.files_to_process:
+                assert os.path.isfile(mrxs_path)
                 wsi_img = open_slide(mrxs_path)
                 coords = self.parse_xml(coord_path)
                 # iterate over the patch-coordinates(s)
