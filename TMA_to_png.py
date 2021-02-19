@@ -72,7 +72,7 @@ class TMAPngExtractor(PngExtractor):
         w, h = wsi.properties[openslide.PROPERTY_NAME_BOUNDS_WIDTH], wsi.properties[
             openslide.PROPERTY_NAME_BOUNDS_HEIGHT]
         wh = (int(int(w) / 2 ** self.level), int(int(h) / 2 ** self.level))
-        return wsi.read_region(dim, self.level, wh)
+        return wsi.read_region(location=dim, level=self.level, size=wh)
 
     # overwrite
     def process_files(self):

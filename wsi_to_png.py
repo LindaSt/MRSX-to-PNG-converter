@@ -12,6 +12,7 @@ if platform.system() == 'Windows':
     os.environ['PATH'] = openslide_path + ";" + os.environ['PATH']
 import openslide
 
+
 class PngExtractor:
     """
     This Object extracts a whole mrxs file to a png format.
@@ -102,7 +103,8 @@ class PngExtractor:
         # coordinates have to be in format [tl, tr, br, bl] ((0,0) is top-left)
         # crop the region of interest from the mrxs file on the specified level
         # get the level and the dimensions
-        id_level = np.argmax(np.array(wsi_img.level_downsamples) == self.level)
+        # id_level = np.argmax(np.array(wsi_img.level_downsamples) == self.level)
+        id_level = self.level
         dims = wsi_img.level_dimensions[id_level]
 
         if coord:
@@ -118,7 +120,7 @@ class PngExtractor:
             size = dims
 
         # extract the region of interest
-        img = wsi_img.read_region(top_left_coord, id_level, size)
+        img = wsi_img.read_region(location=top_left_coord, level=id_level, size=size)
 
         # Convert to img
         img = np.array(img)
