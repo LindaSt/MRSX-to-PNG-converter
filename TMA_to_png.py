@@ -79,6 +79,7 @@ class TMAPngExtractor(PngExtractor):
         # process the files with coordinates
         if os.path.isfile(self.file_path) and os.path.isfile(self.coord_csv):
             output_file_path_prefix, mrxs_path, coord_path = self.files_to_process
+            assert os.path.isfile(mrxs_path)
             wsi_img = openslide.open_slide(mrxs_path)
             if self.adjust_coord:
                 x, y = wsi_img.properties[openslide.PROPERTY_NAME_BOUNDS_X], wsi_img.properties[openslide.PROPERTY_NAME_BOUNDS_Y]

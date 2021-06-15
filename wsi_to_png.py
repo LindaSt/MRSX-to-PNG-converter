@@ -88,6 +88,7 @@ class PngExtractor:
         # process the full image
         if os.path.isfile(self.file_path) or os.path.isdir(self.file_path):
             for output_file_path, wsi_path in self.files_to_process:
+                assert os.path.isfile(wsi_path)
                 wsi_img = openslide.open_slide(wsi_path)
                 # extract the patch
                 png = self.extract_crop(wsi_img)
