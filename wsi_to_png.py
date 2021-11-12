@@ -29,12 +29,14 @@ class PngExtractor:
 
     """
 
-    def __init__(self, file_path: str, output_path: str, staining: str = '', level: int = 0, overwrite: bool = False):
+    def __init__(self, file_path: str, output_path: str, staining: str = '', level: int = 0, overwrite: bool = False,
+                 thumbnail: bool = False):
         # initiate the mandatory elements
         self.file_path = file_path
         self.output_path = output_path
         # instantiate optional parameters
         self.staining = staining
+        self.thumbnail = thumbnail
         self.level = level
         self.overwrite = overwrite
 
@@ -63,7 +65,7 @@ class PngExtractor:
         # we only have one file to process
         if len(self.wsi_files) == 1:
             filename = os.path.splitext(os.path.basename(self.file_path))[0]
-            output_file_name = os.path.join(self.output_path, f'{filename}-level{self.level}')
+            output_file_name = self._get_output_name(filename)
             # skip existing files, if overwrite = False
             if not self.overwrite and os.path.isfile(f'{output_file_name}.png'):
                 print(f'File {output_file_name} already exists. Output saving is skipped. To overwrite add --overwrite.')
@@ -75,7 +77,7 @@ class PngExtractor:
             files_to_process = []
             for wsi_path in self.wsi_files:
                 filename = os.path.splitext(os.path.basename(wsi_path))[0]
-                output_file_name = os.path.join(self.output_path, f'{filename}-level{self.level}')
+                output_file_name = self._get_output_name(filename)
                 # skip existing files, if overwrite = False
                 if not self.overwrite and os.path.isfile(f'{output_file_name}.png'):
                     print(f'File {output_file_name} already exists. Output saving is skipped. To overwrite add --overwrite.')
@@ -84,14 +86,24 @@ class PngExtractor:
 
             return files_to_process
 
+    def _get_output_name(self, filename):
+        if not self.thumbnail:
+            output_file_name = os.path.join(self.output_path, f'{filename}-level{self.level}')
+        else:
+            output_file_name = os.path.join(self.output_path, f'{filename}-thumbnail')
+        return output_file_name
+
     def process_files(self):
         # process the full image
         if os.path.isfile(self.file_path) or os.path.isdir(self.file_path):
             for output_file_path, wsi_path in self.files_to_process:
                 assert os.path.isfile(wsi_path)
                 wsi_img = openslide.open_slide(wsi_path)
-                # extract the patch
-                png = self.extract_crop(wsi_img)
+                # extract the image
+                if self.thumbnail:
+                    png = np.array(wsi_img.get_thumbnail((100000, 10000)))
+                else:
+                    png = self.extract_crop(wsi_img)
                 # save the image
                 print(f'Saving image {output_file_path}.png')
                 Image.fromarray(png[:, :, :3]).save(f'{output_file_path}.png')
@@ -129,9 +141,10 @@ class PngExtractor:
         return img
 
 
-def extract_whole_slide(file_path: str, output_path: str, staining: str = '', level: int = 0, overwrite: bool = False):
+def extract_whole_slide(file_path: str, output_path: str, staining: str = '', level: int = 0, overwrite: bool = False,
+                        thumbnail: bool = False):
     png_extractor = PngExtractor(file_path=file_path, output_path=output_path, staining=staining,
-                                 level=level, overwrite=overwrite)
+                                 level=level, overwrite=overwrite, thumbnail=thumbnail)
 
     # process the files
     png_extractor.process_files()
