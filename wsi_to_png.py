@@ -22,20 +22,20 @@ class PngExtractor:
     :param output_path: string
         path to the output folder. The output format is the same name as the mrxs file,
         with an appendix if multiple patches are extracted.
-    :param staining: Staining identifier, that would be specified right before .mrxs (e.g. CD8) (optional)
+    :param search_pattern: Search pattern, that is added after the folder (optional, default is '*' = all files)
     :param level: int (optional)
         Level of the mrxs file that should be used for the conversion (default is 0).
     :param overwrite: overides exisiting extracted patches (default is False)
 
     """
 
-    def __init__(self, file_path: str, output_path: str, staining: str = '', level: int = 0, overwrite: bool = False,
+    def __init__(self, file_path: str, output_path: str, search_pattern: str = '*', level: int = 0, overwrite: bool = False,
                  thumbnail: bool = False):
         # initiate the mandatory elements
         self.file_path = file_path
         self.output_path = output_path
         # instantiate optional parameters
-        self.staining = staining
+        self.search_pattern = search_pattern
         self.thumbnail = thumbnail
         self.level = level
         self.overwrite = overwrite
@@ -56,8 +56,8 @@ class PngExtractor:
         if os.path.isfile(self.file_path):
             files = [self.file_path]
         else:
-            files = glob.glob(os.path.join(self.file_path, f'*{self.staining}.mrxs'))
-            files.extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
+            files = glob.glob(os.path.join(self.file_path, self.search_pattern))
+            # files.extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
         return files
 
     @property
@@ -141,9 +141,9 @@ class PngExtractor:
         return img
 
 
-def extract_whole_slide(file_path: str, output_path: str, staining: str = '', level: int = 0, overwrite: bool = False,
+def extract_whole_slide(file_path: str, output_path: str, search_pattern: str = '', level: int = 0, overwrite: bool = False,
                         thumbnail: bool = False):
-    png_extractor = PngExtractor(file_path=file_path, output_path=output_path, staining=staining,
+    png_extractor = PngExtractor(file_path=file_path, output_path=output_path, search_pattern=search_pattern,
                                  level=level, overwrite=overwrite, thumbnail=thumbnail)
 
     # process the files

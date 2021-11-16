@@ -38,7 +38,8 @@ It takes the following command line arguments:
 `--matched_files_excel`: Optional. If provided, then this file will be used to match the xmls to the mrxs file names (needs to contain
         a column called "WSI-names" and "XML-names"
 
-`--staining`: Staining identifier, that would be specified right before .mrxs (e.g. CD8) (optional, default is "")
+`--search-pattern`: Search pattern, that is added after the folder (optional, default is `'*'` = all files)
+
 
 `--level`: Level of the mrxs file that should be used for the conversion (default is 0).
 
