@@ -103,6 +103,11 @@ class AsapPngExtractor(PngExtractor):
     def _parse_matched_files_excel(self):
         files_to_process = []
         df = pd.read_excel(self.matched_files_excel, sheet_name=MATCHED_EXCEL_INFO['sheet_name'])
+        # drop all rows that do not contain 0 or 1 in column "Need resection?" (excluded because no data available)
+        df = df.drop(df[~df["Need resection?"].isin([0, 1])].index)
+        # drop all rows that do not contain a file name
+        df = df[df[MATCHED_EXCEL_INFO['xml_col']].notna()]
+        df = df.drop(df[df[MATCHED_EXCEL_INFO['xml_col']].isin(["tbd"])].index)
 
         for wsi_file, wsi_folder, xml_name in zip(df[MATCHED_EXCEL_INFO['wsi_col']], df[MATCHED_EXCEL_INFO['folder_col']], df[MATCHED_EXCEL_INFO['xml_col']]):
             # filter so that only valid ones are present (e.g. based on the exclude column)
@@ -115,6 +120,7 @@ class AsapPngExtractor(PngExtractor):
                     f'File {output_file_name} already exists. Output saving is skipped. To overwrite add --overwrite.')
                 continue
             wsi_path = os.path.join(self.wsi_files, os.path.join(wsi_folder, wsi_file))
+            # print((output_file_name, wsi_path, xml_name))
             files_to_process.append((output_file_name, wsi_path, os.path.join(self.xmls_path, xml_name)))
 
         return files_to_process
