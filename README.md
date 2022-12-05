@@ -30,7 +30,7 @@ It takes the following command line arguments:
 `--output-path`: Path to the output folder. The output format is the same name as the mrxs file,
     with an appendix if multiple patches are extracted.
 
-`--coord-path`: Path to the coordinate xml files (created with rectangle tool in ASAP) single file or folder of files.
+`--xmls-path`: Path to the coordinate xml files (created with rectangle tool in ASAP) single file or folder of files.
         If not provided, the full image is converted into a png.
 
 `--coord-annotation-tag`: Name of the annotation group in the xml file (default is 'hotspot').
