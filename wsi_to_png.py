@@ -22,21 +22,19 @@ class PngExtractor:
     :param output_path: string
         path to the output folder. The output format is the same name as the mrxs file,
         with an appendix if multiple patches are extracted.
-    :param search_pattern: Search pattern, that is added after the folder (optional, default is '*' = all files)
+    :param staining: Staining identifier, that would be specified right before .mrxs (e.g. CD8) (optional)
     :param level: int (optional)
         Level of the mrxs file that should be used for the conversion (default is 0).
     :param overwrite: overides exisiting extracted patches (default is False)
 
     """
 
-    def __init__(self, file_path: str, output_path: str, search_pattern: str = '*', level: int = 0, overwrite: bool = False,
-                 thumbnail: bool = False):
+    def __init__(self, file_path: str, output_path: str, staining: str = '', level: int = 0, overwrite: bool = False):
         # initiate the mandatory elements
         self.file_path = file_path
         self.output_path = output_path
         # instantiate optional parameters
-        self.search_pattern = search_pattern
-        self.thumbnail = thumbnail
+        self.staining = staining
         self.level = level
         self.overwrite = overwrite
 
@@ -56,8 +54,8 @@ class PngExtractor:
         if os.path.isfile(self.file_path):
             files = [self.file_path]
         else:
-            files = glob.glob(os.path.join(self.file_path, self.search_pattern))
-            # files.extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
+            files = glob.glob(os.path.join(self.file_path, f'*{self.staining}.mrxs'))
+            files.extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
         return files
 
     @property
@@ -65,7 +63,7 @@ class PngExtractor:
         # we only have one file to process
         if len(self.wsi_files) == 1:
             filename = os.path.splitext(os.path.basename(self.file_path))[0]
-            output_file_name = self._get_output_name(filename)
+            output_file_name = os.path.join(self.output_path, f'{filename}-level{self.level}')
             # skip existing files, if overwrite = False
             if not self.overwrite and os.path.isfile(f'{output_file_name}.png'):
                 print(f'File {output_file_name} already exists. Output saving is skipped. To overwrite add --overwrite.')
@@ -77,7 +75,7 @@ class PngExtractor:
             files_to_process = []
             for wsi_path in self.wsi_files:
                 filename = os.path.splitext(os.path.basename(wsi_path))[0]
-                output_file_name = self._get_output_name(filename)
+                output_file_name = os.path.join(self.output_path, f'{filename}-level{self.level}')
                 # skip existing files, if overwrite = False
                 if not self.overwrite and os.path.isfile(f'{output_file_name}.png'):
                     print(f'File {output_file_name} already exists. Output saving is skipped. To overwrite add --overwrite.')
@@ -86,24 +84,14 @@ class PngExtractor:
 
             return files_to_process
 
-    def _get_output_name(self, filename):
-        if not self.thumbnail:
-            output_file_name = os.path.join(self.output_path, f'{filename}-level{self.level}')
-        else:
-            output_file_name = os.path.join(self.output_path, f'{filename}-thumbnail')
-        return output_file_name
-
     def process_files(self):
         # process the full image
         if os.path.isfile(self.file_path) or os.path.isdir(self.file_path):
             for output_file_path, wsi_path in self.files_to_process:
                 assert os.path.isfile(wsi_path)
                 wsi_img = openslide.open_slide(wsi_path)
-                # extract the image
-                if self.thumbnail:
-                    png = np.array(wsi_img.get_thumbnail((100000, 10000)))
-                else:
-                    png = self.extract_crop(wsi_img)
+                # extract the patch
+                png = self.extract_crop(wsi_img)
                 # save the image
                 print(f'Saving image {output_file_path}.png')
                 Image.fromarray(png[:, :, :3]).save(f'{output_file_path}.png')
@@ -141,10 +129,9 @@ class PngExtractor:
         return img
 
 
-def extract_whole_slide(file_path: str, output_path: str, search_pattern: str = '', level: int = 0, overwrite: bool = False,
-                        thumbnail: bool = False):
-    png_extractor = PngExtractor(file_path=file_path, output_path=output_path, search_pattern=search_pattern,
-                                 level=level, overwrite=overwrite, thumbnail=thumbnail)
+def extract_whole_slide(file_path: str, output_path: str, staining: str = '', level: int = 0, overwrite: bool = False):
+    png_extractor = PngExtractor(file_path=file_path, output_path=output_path, staining=staining,
+                                 level=level, overwrite=overwrite)
 
     # process the files
     png_extractor.process_files()

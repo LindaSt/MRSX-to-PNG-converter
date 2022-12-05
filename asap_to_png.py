@@ -37,17 +37,17 @@ class AsapPngExtractor(PngExtractor):
     :param matched_files_excel: str
         Optional. If provided, then this file will be used to match the xmls to the mrxs file names
         (specify info in MATCHED_EXEL_INFO dict above)
-    :param search_pattern: Search pattern, that is added after the folder (optional, default is '*' = all files)
+    :param staining: Staining identifier, that would be specified right before .mrxs (e.g. CD8) (optional, default is '')
     :param level: int (optional)
         Level of the mrxs file that should be used for the conversion (default is 0).
     :param overwrite: overwrites existing extracted patches (default is False)
     """
 
-    def __init__(self, file_path: str, output_path: str, xmls_path: str, search_pattern: str = '*',
+    def __init__(self, file_path: str, output_path: str, xmls_path: str, staining: str = '',
                  coord_annotation_tag: str = 'hotspot', level: int = 0, overwrite: bool = False,
                  matched_files_excel: str = None):
         # initiate properties from parent class
-        super().__init__(file_path=file_path, output_path=output_path, search_pattern=search_pattern, level=level,
+        super().__init__(file_path=file_path, output_path=output_path, staining=staining, level=level,
                          overwrite=overwrite)
         # instantiate class parameters
         self.xmls_path = xmls_path
@@ -57,7 +57,7 @@ class AsapPngExtractor(PngExtractor):
     @property
     def xml_files(self):
         if self.xmls_path:
-            return glob.glob(os.path.join(self.xmls_path, f'*{self.search_pattern}.xml')) if os.path.isdir(
+            return glob.glob(os.path.join(self.xmls_path, f'*{self.staining}.xml')) if os.path.isdir(
                 self.xmls_path) else [self.xmls_path]
         else:
             return None
@@ -70,8 +70,8 @@ class AsapPngExtractor(PngExtractor):
         elif self.matched_files_excel:
             files = self.file_path
         else:
-            files = glob.glob(os.path.join(self.file_path, self.search_pattern))
-            # files.extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
+            files = glob.glob(os.path.join(self.file_path, f'*{self.staining}.mrxs'))
+            files.extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
         return files
 
     # overwrite
@@ -103,6 +103,11 @@ class AsapPngExtractor(PngExtractor):
     def _parse_matched_files_excel(self):
         files_to_process = []
         df = pd.read_excel(self.matched_files_excel, sheet_name=MATCHED_EXCEL_INFO['sheet_name'])
+        # drop all rows that do not contain 0 or 1 in column "Need resection?" (excluded because no data available)
+        df = df.drop(df[~df["Need resection?"].isin([0, 1])].index)
+        # drop all rows that do not contain a file name
+        df = df[df[MATCHED_EXCEL_INFO['xml_col']].notna()]
+        df = df.drop(df[df[MATCHED_EXCEL_INFO['xml_col']].isin(["tbd"])].index)
 
         for wsi_file, wsi_folder, xml_name in zip(df[MATCHED_EXCEL_INFO['wsi_col']], df[MATCHED_EXCEL_INFO['folder_col']], df[MATCHED_EXCEL_INFO['xml_col']]):
             # filter so that only valid ones are present (e.g. based on the exclude column)
@@ -115,6 +120,7 @@ class AsapPngExtractor(PngExtractor):
                     f'File {output_file_name} already exists. Output saving is skipped. To overwrite add --overwrite.')
                 continue
             wsi_path = os.path.join(self.wsi_files, os.path.join(wsi_folder, wsi_file))
+            # print((output_file_name, wsi_path, xml_name))
             files_to_process.append((output_file_name, wsi_path, os.path.join(self.xmls_path, xml_name)))
 
         return files_to_process
@@ -198,10 +204,10 @@ class AsapPngExtractor(PngExtractor):
         return annotations[self.coord_annotation_tag]
 
 
-def extract_patch(file_path: str, output_path: str, xmls_path: str, search_pattern: str = '',
+def extract_patch(file_path: str, output_path: str, xmls_path: str, staining: str = '',
                   coord_annotation_tag: str = 'hotspot',
                   level: int = 0, overwrite: bool = False, matched_files_excel: str = None):
-    png_extractor = AsapPngExtractor(file_path=file_path, output_path=output_path, search_pattern=search_pattern, level=level,
+    png_extractor = AsapPngExtractor(file_path=file_path, output_path=output_path, staining=staining, level=level,
                                      overwrite=overwrite, xmls_path=xmls_path,
                                      coord_annotation_tag=coord_annotation_tag, matched_files_excel=matched_files_excel)
     # process the files
