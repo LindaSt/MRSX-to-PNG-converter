@@ -118,7 +118,6 @@ class TMAPngExtractor(PngExtractor):
         if not np.isnan(csv_row['Core Unique ID']):
             c_x, c_y = csv_row['Centroid X (pixels)'], csv_row['Centroid Y (pixels)']
             # adjust coordinates, if we work with QuPath-extracted coordinates
-
             radius = csv_row['Radius (pixels)']
             coords = [[c_x - radius + adjust_x, c_y - radius + adjust_y], [c_x + radius + adjust_x, c_y - radius + adjust_y],
                       [c_x + radius + adjust_x, c_y + radius + adjust_y], [c_x - radius + adjust_x, c_y + radius + adjust_y]]

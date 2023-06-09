@@ -9,11 +9,13 @@ It takes the following command line arguments:
 `--output-path`: Path to the output folder. The output format is the same name as the mrxs file,
     with an appendix if multiple patches are extracted.
 
-`--level`: Level of the mrxs file that should be used for the conversion (default is 0).
+`--level`: Optional. Level of the mrxs file that should be used for the conversion (default is 0).
 
-`--staining`: Staining identifier, that would be specified right before .mrxs (e.g. CD8) (optional, default is '')
+`--thumbnail`: Optional. Default is False. If set, the thumbnail images are extracted (overrules `--level`).
 
-`--override`: Default is False. If set to True, overrides patches with the same file name in the output folder.
+`--staining`: Optional. Staining identifier, that would be specified right before .mrxs (e.g. CD8) (optional, default is '')
+
+`--override`: Optional. Default is False. If set to True, overrides patches with the same file name in the output folder.
 
 Run as `python wsi_to_png.py [command line arguments]`.
 
@@ -28,7 +30,7 @@ It takes the following command line arguments:
 `--output-path`: Path to the output folder. The output format is the same name as the mrxs file,
     with an appendix if multiple patches are extracted.
 
-`--coord-path`: Path to the coordinate xml files (created with rectangle tool in ASAP) single file or folder of files
+`--xmls-path`: Path to the coordinate xml files (created with rectangle tool in ASAP) single file or folder of files.
         If not provided, the full image is converted into a png.
 
 `--coord-annotation-tag`: Name of the annotation group in the xml file (default is 'hotspot').
@@ -36,7 +38,8 @@ It takes the following command line arguments:
 `--matched_files_excel`: Optional. If provided, then this file will be used to match the xmls to the mrxs file names (needs to contain
         a column called "WSI-names" and "XML-names"
 
-`--staining`: Staining identifier, that would be specified right before .mrxs (e.g. CD8) (optional, default is '')
+`--search-pattern`: Search pattern, that is added after the folder (optional, default is `'*'` = all files)
+
 
 `--level`: Level of the mrxs file that should be used for the conversion (default is 0).
 
