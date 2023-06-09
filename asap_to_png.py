@@ -70,8 +70,8 @@ class AsapPngExtractor(PngExtractor):
         elif self.matched_files_excel:
             files = self.file_path
         else:
-            files = glob.glob(os.path.join(self.file_path, f'*{self.staining}.mrxs'))
-            files.extend(glob.glob(os.path.join(self.file_path, f'*{self.staining}.ndpi')))
+            files = glob.glob(os.path.join(self.file_path, f'**/*{self.staining}.mrxs'))
+            files.extend(glob.glob(os.path.join(self.file_path, f'**/*{self.staining}.ndpi')))
         return files
 
     # overwrite
